@@ -1101,7 +1101,7 @@ def plot_results_overlay(start=0, stop=0):  # from utils.utils import *; plot_re
         fig.savefig(f.replace('.txt', '.png'), dpi=200)
 
 
-def plot_results(start=0, stop=0, bucket='', id=(), labels=()):  # from utils.utils import *; plot_results()
+def plot_results(start=0, stop=0, bucket='', id=(), labels=(), save_path=''):  # from utils.utils import *; plot_results()
     # Plot training 'results*.txt' as seen in https://github.com/ultralytics/yolov5#reproduce-our-training
     fig, ax = plt.subplots(2, 5, figsize=(12, 6))
     ax = ax.ravel()
@@ -1111,7 +1111,7 @@ def plot_results(start=0, stop=0, bucket='', id=(), labels=()):  # from utils.ut
         os.system('rm -rf storage.googleapis.com')
         files = ['https://storage.googleapis.com/%s/results%g.txt' % (bucket, x) for x in id]
     else:
-        files = glob.glob('results*.txt') + glob.glob('../../Downloads/results*.txt')
+        files = glob.glob(os.path.join(save_path, 'results*.txt')) + glob.glob('../../Downloads/results*.txt')
     for fi, f in enumerate(files):
         try:
             results = np.loadtxt(f, usecols=[2, 3, 4, 8, 9, 12, 13, 14, 10, 11], ndmin=2).T
@@ -1132,4 +1132,4 @@ def plot_results(start=0, stop=0, bucket='', id=(), labels=()):  # from utils.ut
 
     fig.tight_layout()
     ax[1].legend()
-    fig.savefig('results.png', dpi=200)
+    fig.savefig(os.path.join(save_path, 'results.png'), dpi=200)
