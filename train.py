@@ -19,6 +19,7 @@ except:
     print('Apex recommended for faster mixed precision training: https://github.com/NVIDIA/apex')
     mixed_precision = False  # not installed
 
+save_path = ''
 wdir = 'weights' + os.sep  # weights dir
 last = wdir + 'last.pt'
 best = wdir + 'best.pt'
@@ -279,7 +280,7 @@ def train(hyp):
 
             # Plot
             if ni < 3:
-                f = 'train_batch%g.jpg' % i  # filename
+                f = os.path.join(save_path, 'train_batch%g.jpg' % i)  # filename
                 res = plot_images(images=imgs, targets=targets, paths=paths, fname=f)
                 if tb_writer:
                     tb_writer.add_image(f, res, dataformats='HWC', global_step=epoch)
@@ -301,7 +302,8 @@ def train(hyp):
                                              model=ema.ema,
                                              single_cls=opt.single_cls,
                                              dataloader=testloader,
-                                             fast=ni < n_burn)
+                                             fast=ni < n_burn,
+                                             save_path=save_path)
 
         # Write
         with open(results_file, 'a') as f:
@@ -353,7 +355,7 @@ def train(hyp):
                 os.system('gsutil cp %s gs://%s/weights' % (f2, opt.bucket)) if opt.bucket and ispt else None  # upload
 
     if not opt.evolve:
-        plot_results()  # save as results.png
+        plot_results(save_path=save_path)  # save as results.png
     print('%g epochs completed in %.3f hours.\n' % (epoch - start_epoch + 1, (time.time() - t0) / 3600))
     dist.destroy_process_group() if torch.cuda.device_count() > 1 else None
     torch.cuda.empty_cache()
@@ -380,6 +382,7 @@ if __name__ == '__main__':
     parser.add_argument('--adam', action='store_true', help='use adam optimizer')
     parser.add_argument('--multi-scale', action='store_true', help='vary img-size +/- 50%')
     parser.add_argument('--single-cls', action='store_true', help='train as single-class dataset')
+    parser.add_argument('--save_path', required=True, help='path to save output files')
     opt = parser.parse_args()
     opt.weights = last if opt.resume else opt.weights
     opt.cfg = glob.glob('./**/' + opt.cfg, recursive=True)[0]  # find file
@@ -390,6 +393,19 @@ if __name__ == '__main__':
     # check_git_status()
     if device.type == 'cpu':
         mixed_precision = False
+
+    save_path = opt.save_path
+    if os.path.exists(save_path):
+        shutil.rmtree(save_path)
+    wdir = os.path.join(save_path, wdir)
+    last = os.path.join(save_path, last)
+    best = os.path.join(save_path, best)
+    results_file = os.path.join(save_path, 'results.txt')
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    if not os.path.exists(wdir):
+        os.makedirs(wdir)
 
     # Train
     if not opt.evolve:

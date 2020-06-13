@@ -20,13 +20,14 @@ def test(data,
          model=None,
          dataloader=None,
          fast=False,
-         verbose=False):  # 0 fast, 1 accurate
+         verbose=False,
+         save_path=''):  # 0 fast, 1 accurate
     # Initialize/load model and set device
     if model is None:
         device = torch_utils.select_device(opt.device, batch_size=batch_size)
 
         # Remove previous
-        for f in glob.glob('test_batch*.jpg'):
+        for f in glob.glob(os.path.join(save_path, 'test_batch*.jpg')):
             os.remove(f)
 
         # Load model
@@ -167,9 +168,9 @@ def test(data,
 
         # Plot images
         if batch_i < 1:
-            f = 'test_batch%g_gt.jpg' % batch_i  # filename
+            f = os.path.join(save_path, 'test_batch%g_gt.jpg' % batch_i)  # filename
             plot_images(imgs, targets, paths, f, names)  # ground truth
-            f = 'test_batch%g_pred.jpg' % batch_i
+            f = os.path.join(save_path, 'test_batch%g_pred.jpg' % batch_i)
             plot_images(imgs, output_to_target(output, width, height), paths, f, names)  # predictions
 
     # Compute statistics
