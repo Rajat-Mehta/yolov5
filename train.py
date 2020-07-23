@@ -303,7 +303,8 @@ def train(hyp):
                                              single_cls=opt.single_cls,
                                              dataloader=testloader,
                                              fast=ni < n_burn,
-                                             save_path=save_path)
+                                             save_path=save_path,
+                                             verbose=True)
 
         # Write
         with open(results_file, 'a') as f:
@@ -367,7 +368,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=300)
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--cfg', type=str, default='models/yolov5s.yaml', help='*.cfg path')
-    parser.add_argument('--data', type=str, default='data/coco128.yaml', help='*.data path')
+    parser.add_argument('--data', type=str, default='data/damage.yaml', help='*.data path')
     parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640], help='train,test sizes')
     parser.add_argument('--rect', action='store_true', help='rectangular training')
     parser.add_argument('--resume', action='store_true', help='resume training from last.pt')
